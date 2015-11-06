@@ -13,3 +13,7 @@ catalog_db_setup.py
 catalogwithusers.db
 
 templates/example.html
+
+scratch.json
+static/test
+

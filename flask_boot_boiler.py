@@ -1,10 +1,12 @@
 from __future__ import print_function
-from flask import Flask, render_template
+import imghdr
+import os
+from flask import Flask, render_template, flash, url_for, redirect
 from flask.ext.bootstrap import Bootstrap
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from flask.ext.wtf import Form
-from wtforms import FileField, SubmitField, StringField, TextAreaField, RadioField
+from wtforms import FileField, SubmitField, StringField, TextAreaField, RadioField, SelectField, ValidationError
 from catalog_db_setup import Base, Category, CategoryItem, User
 
 
@@ -22,18 +24,20 @@ session = DBSession()
 
 class CatalogItemForm(Form):
 
+
     item_name = StringField('Name')
-
     item_desc = TextAreaField('Description')
-
+    category_id = SelectField('Category', coerce=int)
     image_file = FileField('Image file')
-
     submit = SubmitField('Submit')
 
+    def validate_image_file(self, field):
+        if len(field.data.filename) != 0:
+            if field.data.filename[-4:].lower() != '.jpg' and field.data.filename[-4:].lower() != '.png' :
+                raise ValidationError('Invalid file extension: please select a jpg or png file')
 
-
-class Bogus:
-    print ('this is bogus')
+            if imghdr.what(field.data) != 'jpeg' and imghdr.what(field.data) != 'png':
+                raise ValidationError('Invalid image format: please select a jpg or png file')
 
 
 @app.route('/')
@@ -63,8 +67,32 @@ def show_item(item_id):
 def new_item(category_id):
     print ('********* 1 **************')
     form = CatalogItemForm()
+    form.category_id.choices = [(c.id, c.name) for c in session.query(Category).order_by('name')]
+
     if form.validate_on_submit():
         print('foo')
+        if form.image_file.data.filename:
+            filename = form.image_file.data.filename
+            item_image = 'images/' + form.image_file.data.filename
+            form.image_file.data.save(os.path.join(app.static_folder,item_image))
+        else:
+            filename = 'no-image.png'
+        print('cat id {}'.format(form.category_id.data))
+
+        newItem = CategoryItem(
+            name=form.item_name.data,
+            description=form.item_desc.data,
+            image=filename,
+            category_id=form.category_id.data,
+            price='$199.99',
+            user_id = 1
+        )
+        print('new item created')
+        session.add(newItem)
+        print ('new item added')
+        session.commit()
+        flash('New Item {} Successfully Created'.format(newItem.name))
+        return redirect(url_for('show_categories'))
     else:
         print('bar')
     print ('2')
@@ -77,6 +105,7 @@ class SimpleForm(Form):
 @app.route('/example',methods=['post','get'])
 def hello_world():
     form = SimpleForm()
+
     if form.validate_on_submit():
         print (form.example.data)
     else:
@@ -85,4 +114,4 @@ def hello_world():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
