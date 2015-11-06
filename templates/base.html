@@ -17,7 +17,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">geek catalog</a>
+      <a class="navbar-brand" href="{{ url_for('show_categories') }}">geek catalog</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -31,23 +31,19 @@
 {% endblock %}
 
 {% block content %}
-    <div class ="col-md-12 flash divider blue">
-	{% with messages = get_flashed_messages() %}
-      {% if messages %}
-		  <ul>
-			{% for message in messages %}
-				<li> <strong> {{ message }} </strong> </li>
-			{% endfor %}
-		   </ul>
-        {% endif %}
-    {% endwith %}
+<div class ="col-md-12 flash divider blue">
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+      <ul>
+        {% for message in messages %}
+            <li> <strong> {{ message }} </strong> </li>
+        {% endfor %}
+       </ul>
+    {% endif %}
+{% endwith %}
 </div>
 
+{% block page_content %}{% endblock %}
 
-
-    <div class="container">
-        <h1>retro geek. retro cool.</h1>
-        {% block page_content %}{% endblock %}
-    </div>
 {% endblock %}
 

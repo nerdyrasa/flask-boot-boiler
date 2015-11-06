@@ -5,3 +5,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+static/images
+populate.py
+
+catalog_db_setup.py
+catalogwithusers.db
+
