@@ -12,3 +12,4 @@ populate.py
 catalog_db_setup.py
 catalogwithusers.db
 
+templates/example.html

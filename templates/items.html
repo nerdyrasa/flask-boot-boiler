@@ -12,6 +12,8 @@
                <a href="{{ url_for('show_item',item_id=item.id) }}">{{item.name}}</a>
             </div>
             {% endfor %}
+
+            <a href="{{ url_for('new_item', category_id=2) }}">Add new item</a>
         </div>
 	</div>
 
