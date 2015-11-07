@@ -27,7 +27,6 @@ class CatalogItemForm(Form):
 
     item_name = StringField('Name')
     item_desc = TextAreaField('Description')
-    category_id = SelectField('Category', coerce=int)
     image_file = FileField('Image file')
     submit = SubmitField('Submit')
 
@@ -48,55 +47,54 @@ def show_categories():
 
 @app.route('/items/<int:category_id>')
 def items(category_id):
-    #category = session.query(Category).filter_by(category_id=category_id).one()
-    print ("show all the items")
+    category = session.query(Category).filter_by(id=category_id).one()
+    #print ("category {}".format(category.name))
     items=session.query(CategoryItem).filter_by(category_id=category_id)
-    print ('items {}'.format(items))
-    return render_template('items.html', items=items)
+    #print ('items {}'.format(items))
+    return render_template('items.html', items=items, category=category )
 
 
 @app.route('/item/<int:item_id>')
 def show_item(item_id):
-    print ("show item")
+    #print ("show item")
     item=session.query(CategoryItem).filter_by(id=item_id).one()
-    print ("item = {}".format(item))
+    #print ("item = {}".format(item))
     return render_template('details.html', item=item)
 
 
 @app.route('/new/item/<int:category_id>', methods=['GET','POST'])
 def new_item(category_id):
-    print ('********* 1 **************')
+    print ('category_id {}'.format(category_id))
+    category = session.query(Category).filter_by(id=category_id).one()
     form = CatalogItemForm()
-    form.category_id.choices = [(c.id, c.name) for c in session.query(Category).order_by('name')]
 
     if form.validate_on_submit():
-        print('foo')
+        #print('foo')
         if form.image_file.data.filename:
             filename = form.image_file.data.filename
             item_image = 'images/' + form.image_file.data.filename
             form.image_file.data.save(os.path.join(app.static_folder,item_image))
         else:
             filename = 'no-image.png'
-        print('cat id {}'.format(form.category_id.data))
+
+        print ('cat id {}'.format(category_id))
 
         newItem = CategoryItem(
             name=form.item_name.data,
             description=form.item_desc.data,
             image=filename,
-            category_id=form.category_id.data,
-            price='$199.99',
+            category_id=category_id,
             user_id = 1
         )
-        print('new item created')
+        #print('new item created')
         session.add(newItem)
-        print ('new item added')
+        #print ('new item added')
         session.commit()
         flash('New Item {} Successfully Created'.format(newItem.name))
         return redirect(url_for('show_categories'))
-    else:
-        print('bar')
-    print ('2')
-    return render_template('newitem.html', form=form)
+
+    #print ('2')
+    return render_template('newitem.html', form=form, category_name=category.name)
 
 class SimpleForm(Form):
     example = RadioField('Label', choices=[('value','description'),('value_two','whatever')])
