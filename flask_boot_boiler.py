@@ -1,7 +1,7 @@
 from __future__ import print_function
 import imghdr
 import os
-from flask import Flask, render_template, flash, url_for, redirect
+from flask import Flask, render_template, flash, url_for, redirect, request
 from flask.ext.bootstrap import Bootstrap
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
@@ -24,11 +24,12 @@ session = DBSession()
 
 class CatalogItemForm(Form):
 
-
-    item_name = StringField('Name')
-    item_desc = TextAreaField('Description')
-    image_file = FileField('Image file')
+    name = StringField('Name')
+    description = TextAreaField('Description')
+    image = FileField('Image file')
     submit = SubmitField('Submit')
+
+
 
     def validate_image_file(self, field):
         if len(field.data.filename) != 0:
@@ -64,37 +65,64 @@ def show_item(item_id):
 
 @app.route('/new/item/<int:category_id>', methods=['GET','POST'])
 def new_item(category_id):
-    print ('category_id {}'.format(category_id))
+
     category = session.query(Category).filter_by(id=category_id).one()
     form = CatalogItemForm()
 
     if form.validate_on_submit():
-        #print('foo')
-        if form.image_file.data.filename:
-            filename = form.image_file.data.filename
-            item_image = 'images/' + form.image_file.data.filename
-            form.image_file.data.save(os.path.join(app.static_folder,item_image))
+        if form.image.data.filename:
+            filename = form.image.data.filename
+            item_image = 'images/' + filename
+            form.image.data.save(os.path.join(app.static_folder,item_image))
         else:
             filename = 'no-image.png'
 
-        print ('cat id {}'.format(category_id))
-
         newItem = CategoryItem(
-            name=form.item_name.data,
-            description=form.item_desc.data,
+            name=form.name.data,
+            description=form.description.data,
             image=filename,
             category_id=category_id,
             user_id = 1
         )
-        #print('new item created')
         session.add(newItem)
-        #print ('new item added')
         session.commit()
         flash('New Item {} Successfully Created'.format(newItem.name))
         return redirect(url_for('show_categories'))
 
-    #print ('2')
     return render_template('newitem.html', form=form, category_name=category.name)
+
+
+
+
+@app.route('/edit/item/<int:item_id>', methods=['GET','POST'])
+def edit_item(item_id):
+
+    editItem = session.query(CategoryItem).filter_by(id=item_id).one()
+    print ('edit item {}'.format(editItem))
+    form = CatalogItemForm(obj=editItem)
+
+    if form.validate_on_submit():
+        if form.name.data:
+            editItem.name = form.name.data
+        if form.description.data:
+            editItem.description = form.description.data
+        if form.image.data.filename:
+            filename = form.image.data.filename
+            editItem.image = filename
+            item_image = 'images/' + filename
+            form.image.data.save(os.path.join(app.static_folder,item_image))
+
+        session.add(editItem)
+        session.commit()
+        flash('EDIT SUCCESS')
+        return redirect(url_for('show_categories'))
+
+    else:
+        print ('2')
+
+
+    return render_template('edititem.html', form=form, image=editItem.image)
+
 
 class SimpleForm(Form):
     example = RadioField('Label', choices=[('value','description'),('value_two','whatever')])
