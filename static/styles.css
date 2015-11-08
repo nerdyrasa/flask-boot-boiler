@@ -38,11 +38,12 @@ h3 {
  	line-height: 24px;
  }
 
- a {
+a {
  	font-size: 14px;
  	color: #0093B9;
  	line-height: 17px;
  }
+
 .padding-top {
 	padding-top: 30px;
 }
@@ -175,4 +176,8 @@ h3 {
 .navbar-brand small {
   display:block;
   font-size:12px;
+}
+
+a:link {
+    text-decoration: none;
 }
